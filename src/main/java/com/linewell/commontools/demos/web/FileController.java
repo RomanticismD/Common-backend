@@ -1,7 +1,10 @@
 package com.linewell.commontools.demos.web;
 
+import com.linewell.commontools.CommonToolsApplication;
 import com.linewell.commontools.demos.web.Result.ScanResult;
 import org.mozilla.universalchardet.UniversalDetector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,25 +24,21 @@ import java.util.regex.Pattern;
 public class FileController {
 
     private static final Pattern CHINESE_PATTERN = Pattern.compile("[\\u4e00-\\u9fa5]");
+    private static final Logger logger = LoggerFactory.getLogger(CommonToolsApplication.class);
 
     @GetMapping("/scan")
     public ResponseEntity<ScanResult> scanFiles(
             @RequestParam(name = "directory",required = true) String directoryPath,
             @RequestParam(name = "excludeDirectories", required = false) List<String> excludeDirectories,
             @RequestParam(name = "excludeExtensions", required = false) List<String> excludeExtensions) {
-        System.out.println("Processing .................");
         File folder = new File(directoryPath);
-
         ScanResult result = new ScanResult();
-
         if (folder.exists() && folder.isDirectory()) {
             traverseFolder(folder, result, excludeDirectories, excludeExtensions);
         } else {
             result.setMessage("Invalid directory path: " + directoryPath);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
-
-        System.out.println("Done!");
         result.setMessage("Processing completed successfully.");
         return ResponseEntity.ok(result);
     }
@@ -135,7 +134,7 @@ public class FileController {
                 return Charset.forName(encoding);
             }
         } catch (IOException e) {
-            System.out.println("Error detecting encoding for file: " + file.getAbsolutePath());
+            logger.error("Error detecting encoding for file: " + file.getAbsolutePath());
         }
 
         return StandardCharsets.UTF_8; // Default to UTF-8
