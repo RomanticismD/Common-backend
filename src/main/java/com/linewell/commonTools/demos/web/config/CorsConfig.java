@@ -1,4 +1,4 @@
-package com.linewell.commontools.demos.web.config;
+package com.linewell.commonTools.demos.web.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

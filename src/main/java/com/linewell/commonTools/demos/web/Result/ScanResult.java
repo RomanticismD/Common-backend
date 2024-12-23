@@ -1,4 +1,4 @@
-package com.linewell.commontools.demos.web.Result;
+package com.linewell.commonTools.demos.web.Result;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
-package com.linewell.commontools.demos.web;
+package com.linewell.commonTools.demos.web;
 
-import com.linewell.commontools.CommonToolsApplication;
-import com.linewell.commontools.demos.web.Result.ScanResult;
+import com.linewell.commonTools.CommonToolsApplication;
+import com.linewell.commonTools.demos.web.Result.ScanResult;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

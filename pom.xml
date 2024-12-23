@@ -67,8 +67,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.linewell.commontools.CommonToolsApplication</mainClass>
-                    <skip>true</skip>
+                    <mainClass>com.linewell.commonTools.CommonToolsApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -81,5 +80,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>

@@ -1,4 +1,4 @@
-package com.linewell.commontools;
+package com.linewell.commonTools;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
