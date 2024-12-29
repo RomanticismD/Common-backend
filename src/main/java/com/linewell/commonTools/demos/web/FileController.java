@@ -2,7 +2,6 @@ package com.linewell.commonTools.demos.web;
 
 import com.linewell.commonTools.CommonToolsApplication;
 import com.linewell.commonTools.demos.web.Result.ScanResult;
-import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,10 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,13 +18,12 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
-
     private static final Pattern CHINESE_PATTERN = Pattern.compile("[\\u4e00-\\u9fa5]");
     private static final Logger logger = LoggerFactory.getLogger(CommonToolsApplication.class);
 
     @GetMapping("/scan")
     public ResponseEntity<ScanResult> scanFiles(
-            @RequestParam(name = "directory",required = true) String directoryPath,
+            @RequestParam(name = "directory", required = true) String directoryPath,
             @RequestParam(name = "excludeDirectories", required = false) List<String> excludeDirectories,
             @RequestParam(name = "excludeExtensions", required = false) List<String> excludeExtensions) {
         File folder = new File(directoryPath);
@@ -88,35 +83,67 @@ public class FileController {
 
     // Process text files and find Chinese characters
     private void processTextFile(File file, ScanResult result) {
-        Charset detectedCharset = detectFileEncoding(file);
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), detectedCharset))) {
-            StringBuilder fileContent = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                fileContent.append(line);
-            }
+       // Charset detectedCharset = detectFileEncoding(file);
 
-            Matcher matcher = CHINESE_PATTERN.matcher(fileContent.toString());
-            StringBuilder chineseChars = new StringBuilder();
-
-            while (matcher.find()) {
-                if (chineseChars.length() > 0) {
-                    chineseChars.append(", ");
+        if (file.getName().endsWith(".csv")) {
+            processCsvFile(file, result);
+        } else {
+            // Process other text files (txt, etc.)
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+                StringBuilder fileContent = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    fileContent.append(line);
                 }
-                chineseChars.append(matcher.group());
+
+                Matcher matcher = CHINESE_PATTERN.matcher(fileContent.toString());
+                StringBuilder chineseChars = new StringBuilder();
+
+                while (matcher.find()) {
+                    if (chineseChars.length() > 0) {
+                        chineseChars.append(", ");
+                    }
+                    chineseChars.append(matcher.group());
+                }
+                if (chineseChars.length() > 0) {
+                    result.addFileWithChinese(file.getAbsolutePath(), chineseChars.toString());
+                }
+            } catch (IOException e) {
+                result.addError("Error reading file: " + file.getAbsolutePath());
+                e.printStackTrace();
             }
-            if (chineseChars.length() > 0) {
-                result.addFileWithChinese(file.getAbsolutePath(), chineseChars.toString());
-            }
-        } catch (IOException e) {
-            result.addError("Error reading file: " + file.getAbsolutePath());
-            e.printStackTrace();
         }
     }
 
+    // Process CSV files specifically to extract Chinese characters
+    private void processCsvFile(File file, ScanResult result) {
+        try (BufferedReader textFile = new BufferedReader(new FileReader(file))) {
+            String lineData;
+
+            // Read the contents of the file line by line
+            while ((lineData = textFile.readLine()) != null) {
+                Matcher matcher = CHINESE_PATTERN.matcher(lineData);
+                StringBuilder chineseContent = new StringBuilder();
+
+                while (matcher.find()) {
+                    chineseContent.append(matcher.group());
+                }
+                // If there is Chinese content in this line, it will be output
+                if (chineseContent.length() > 0) {
+                    result.addFileWithChinese(file.getAbsolutePath(), chineseContent.toString());
+                }
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("CSV file not found: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Error reading CSV file: " + file.getAbsolutePath());
+        }
+    }
+
+
     // Detect file encoding using UniversalDetector
-    private Charset detectFileEncoding(File file) {
+/*    private Charset detectFileEncoding(File file) {
         try (InputStream fis = new FileInputStream(file)) {
             byte[] buffer = new byte[4096];
             UniversalDetector detector = new UniversalDetector(null);
@@ -138,5 +165,5 @@ public class FileController {
         }
 
         return StandardCharsets.UTF_8; // Default to UTF-8
-    }
+    }*/
 }
